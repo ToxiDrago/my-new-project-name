@@ -2,7 +2,7 @@ import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useState } from 'react';
 
-import { NavLink } from 'react-router';
+import { NavLink } from 'react-router-dom';
 import CartItem from '../components/CartItem';
 import { clearItems } from '../redux/slices/cartSlice';
 import CartEmpty from '../components/CartEmpty';
@@ -52,6 +52,15 @@ const Cart = () => {
       setLoading(false);
     }
   };
+
+  if (orderSuccess) {
+    return (
+      <div className="cart__order-success">
+        <h2>Спасибо за заказ!</h2>
+        <p>Мы скоро с вами свяжемся.</p>
+      </div>
+    );
+  }
 
   if (!totalPrice) {
     return <CartEmpty />;
@@ -167,17 +176,13 @@ const Cart = () => {
 
               <span>Вернуться назад</span>
             </NavLink>
-            {orderSuccess ? (
-              <div className="cart__order-success">
-                <h2>Спасибо за заказ!</h2>
-                <p>Мы скоро с вами свяжемся.</p>
-              </div>
-            ) : showOrderForm ? (
+            {showOrderForm ? (
               <form
                 className="cart__order-form"
                 onSubmit={handleOrderSubmit}
                 style={{ marginTop: 24 }}>
                 <input
+                  className="cart__order-input"
                   type="text"
                   name="name"
                   placeholder="Ваше имя"
@@ -186,6 +191,7 @@ const Cart = () => {
                   required
                 />
                 <input
+                  className="cart__order-input"
                   type="tel"
                   name="phone"
                   placeholder="Телефон"
@@ -194,6 +200,7 @@ const Cart = () => {
                   required
                 />
                 <input
+                  className="cart__order-input"
                   type="text"
                   name="address"
                   placeholder="Адрес доставки"
@@ -201,15 +208,19 @@ const Cart = () => {
                   onChange={handleOrderInput}
                   required
                 />
-                <button type="submit" className="button pay-btn" disabled={loading}>
+                <button
+                  className="cart__order-btn"
+                  type="submit"
+                  disabled={loading || !orderData.address.trim()}>
                   {loading ? 'Отправка...' : 'Оформить заказ'}
                 </button>
-                {orderError && <div style={{ color: 'red', marginTop: 8 }}>{orderError}</div>}
+                {orderError && <div className="cart__order-error">{orderError}</div>}
               </form>
-            ) : null}
-            <div className="button pay-btn" onClick={() => setShowOrderForm(true)}>
-              <span>Оплатить сейчас</span>
-            </div>
+            ) : (
+              <button className="button pay-btn" onClick={() => setShowOrderForm(true)}>
+                Оплатить сейчас
+              </button>
+            )}
           </div>
         </div>
       </div>

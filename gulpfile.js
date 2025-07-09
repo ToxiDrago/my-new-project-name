@@ -1,11 +1,12 @@
 const gulp = require('gulp');
 const browserSync = require('browser-sync').create();
-const sass = require('gulp-sass');
+const sass = require('gulp-sass')(require('sass'));
 const ejs = require('gulp-ejs');
 const plumber = require('gulp-plumber');
 const babel = require('gulp-babel');
 const uglify = require('gulp-uglify');
-const autoprefixer = require('gulp-autoprefixer');
+const postcss = require('gulp-postcss');
+const autoprefixer = require('autoprefixer');
 
 gulp.task('scss', () => {
   return gulp
@@ -23,12 +24,7 @@ gulp.task('scss', () => {
         errLogToConsole: true,
       }).on('error', sass.logError),
     )
-    .pipe(
-      autoprefixer({
-        browsers: ['last 2 versions'],
-        cascade: false,
-      }),
-    )
+    .pipe(postcss([autoprefixer()]))
     .pipe(gulp.dest('public/css'))
     .pipe(browserSync.stream());
 });

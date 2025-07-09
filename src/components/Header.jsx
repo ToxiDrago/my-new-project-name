@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router';
+import { NavLink } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
 import logoSvg from '../assets/img/pizza-logo.svg';

@@ -45,5 +45,17 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "browser-sync": "^3.0.4",
+    "gulp": "^5.0.1",
+    "gulp-autoprefixer": "^9.0.0",
+    "gulp-babel": "^8.0.0",
+    "gulp-ejs": "^5.1.0",
+    "gulp-plumber": "^1.2.1",
+    "gulp-postcss": "^10.0.0",
+    "gulp-sass": "^6.0.1",
+    "gulp-uglify": "^3.0.2"
   }
 }

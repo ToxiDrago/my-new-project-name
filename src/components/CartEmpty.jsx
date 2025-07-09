@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router';
+import { NavLink } from 'react-router-dom';
 
 import cartEmptyImg from '../assets/img/empty-cart.png';
 

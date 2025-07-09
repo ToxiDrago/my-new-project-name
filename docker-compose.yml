@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:6
+    restart: always
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo_data:/data/db
+
+  backend:
+    build: ./backend
+    restart: always
+    ports:
+      - 5000:5000
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/pizza-app
+    depends_on:
+      - mongo
+    volumes:
+      - ./build:/app/../build
+
+volumes:
+  mongo_data:
