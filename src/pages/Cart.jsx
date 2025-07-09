@@ -1,5 +1,6 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useState } from 'react';
 
 import { NavLink } from 'react-router';
 import CartItem from '../components/CartItem';
@@ -15,6 +16,40 @@ const Cart = () => {
   const onClickClear = () => {
     if (window.confirm('Вы действительно хотите очистить корзину?')) {
       dispatch(clearItems());
+    }
+  };
+
+  const [showOrderForm, setShowOrderForm] = useState(false);
+  const [orderData, setOrderData] = useState({ name: '', phone: '', address: '' });
+  const [orderSuccess, setOrderSuccess] = useState(false);
+  const [orderError, setOrderError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleOrderInput = (e) => {
+    setOrderData({ ...orderData, [e.target.name]: e.target.value });
+  };
+
+  const handleOrderSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setOrderError('');
+    try {
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...orderData, cart: items }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setOrderSuccess(true);
+        dispatch(clearItems());
+      } else {
+        setOrderError(data.error || 'Ошибка при оформлении заказа');
+      }
+    } catch (err) {
+      setOrderError('Ошибка при отправке запроса');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -132,7 +167,47 @@ const Cart = () => {
 
               <span>Вернуться назад</span>
             </NavLink>
-            <div className="button pay-btn">
+            {orderSuccess ? (
+              <div className="cart__order-success">
+                <h2>Спасибо за заказ!</h2>
+                <p>Мы скоро с вами свяжемся.</p>
+              </div>
+            ) : showOrderForm ? (
+              <form
+                className="cart__order-form"
+                onSubmit={handleOrderSubmit}
+                style={{ marginTop: 24 }}>
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Ваше имя"
+                  value={orderData.name}
+                  onChange={handleOrderInput}
+                  required
+                />
+                <input
+                  type="tel"
+                  name="phone"
+                  placeholder="Телефон"
+                  value={orderData.phone}
+                  onChange={handleOrderInput}
+                  required
+                />
+                <input
+                  type="text"
+                  name="address"
+                  placeholder="Адрес доставки"
+                  value={orderData.address}
+                  onChange={handleOrderInput}
+                  required
+                />
+                <button type="submit" className="button pay-btn" disabled={loading}>
+                  {loading ? 'Отправка...' : 'Оформить заказ'}
+                </button>
+                {orderError && <div style={{ color: 'red', marginTop: 8 }}>{orderError}</div>}
+              </form>
+            ) : null}
+            <div className="button pay-btn" onClick={() => setShowOrderForm(true)}>
               <span>Оплатить сейчас</span>
             </div>
           </div>
