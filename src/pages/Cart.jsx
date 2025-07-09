@@ -6,6 +6,8 @@ import { NavLink } from 'react-router-dom';
 import CartItem from '../components/CartItem';
 import { clearItems } from '../redux/slices/cartSlice';
 import CartEmpty from '../components/CartEmpty';
+import OrderModal from '../components/OrderModal';
+import OrderSuccess from '../components/OrderSuccess';
 
 const Cart = () => {
   const dispatch = useDispatch();
@@ -34,7 +36,7 @@ const Cart = () => {
     setLoading(true);
     setOrderError('');
     try {
-      const response = await fetch('/api/orders', {
+      const response = await fetch('http://localhost:5000/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...orderData, cart: items }),
@@ -54,12 +56,7 @@ const Cart = () => {
   };
 
   if (orderSuccess) {
-    return (
-      <div className="cart__order-success">
-        <h2>Спасибо за заказ!</h2>
-        <p>Мы скоро с вами свяжемся.</p>
-      </div>
-    );
+    return <OrderSuccess />;
   }
 
   if (!totalPrice) {
@@ -176,54 +173,21 @@ const Cart = () => {
 
               <span>Вернуться назад</span>
             </NavLink>
-            {showOrderForm ? (
-              <form
-                className="cart__order-form"
-                onSubmit={handleOrderSubmit}
-                style={{ marginTop: 24 }}>
-                <input
-                  className="cart__order-input"
-                  type="text"
-                  name="name"
-                  placeholder="Ваше имя"
-                  value={orderData.name}
-                  onChange={handleOrderInput}
-                  required
-                />
-                <input
-                  className="cart__order-input"
-                  type="tel"
-                  name="phone"
-                  placeholder="Телефон"
-                  value={orderData.phone}
-                  onChange={handleOrderInput}
-                  required
-                />
-                <input
-                  className="cart__order-input"
-                  type="text"
-                  name="address"
-                  placeholder="Адрес доставки"
-                  value={orderData.address}
-                  onChange={handleOrderInput}
-                  required
-                />
-                <button
-                  className="cart__order-btn"
-                  type="submit"
-                  disabled={loading || !orderData.address.trim()}>
-                  {loading ? 'Отправка...' : 'Оформить заказ'}
-                </button>
-                {orderError && <div className="cart__order-error">{orderError}</div>}
-              </form>
-            ) : (
-              <button className="button pay-btn" onClick={() => setShowOrderForm(true)}>
-                Оплатить сейчас
-              </button>
-            )}
+            <button className="button pay-btn" onClick={() => setShowOrderForm(true)}>
+              Оплатить сейчас
+            </button>
           </div>
         </div>
       </div>
+      <OrderModal
+        visible={showOrderForm}
+        onClose={() => setShowOrderForm(false)}
+        onSubmit={handleOrderSubmit}
+        loading={loading}
+        error={orderError}
+        orderData={orderData}
+        handleInput={handleOrderInput}
+      />
     </div>
   );
 };

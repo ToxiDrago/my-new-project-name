@@ -1,0 +1,25 @@
+.root {
+  background: #fffbe6;
+  border-radius: 16px;
+  padding: 40px 32px 32px 32px;
+  margin: 32px auto;
+  max-width: 600px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.04);
+  text-align: center;
+}
+
+.icon {
+  margin-bottom: 16px;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #ff6900;
+}
+
+.desc {
+  font-size: 1.1rem;
+  color: #333;
+} 

@@ -7,6 +7,9 @@ const babel = require('gulp-babel');
 const uglify = require('gulp-uglify');
 const postcss = require('gulp-postcss');
 const autoprefixer = require('autoprefixer');
+const webpack = require('webpack');
+const webpackStream = require('webpack-stream');
+const webpackConfig = require('./webpack.config.js');
 
 gulp.task('scss', () => {
   return gulp
@@ -41,11 +44,25 @@ gulp.task('js', () => {
     .pipe(gulp.dest('public/js'));
 });
 
+gulp.task('react', () => {
+  return gulp
+    .src('src/index.js')
+    .pipe(plumber())
+    .pipe(webpackStream(webpackConfig, webpack))
+    .pipe(gulp.dest('public/js'))
+    .pipe(browserSync.stream());
+});
+
 gulp.task('ejs', () => {
   return gulp
-    .src(['src/ejs/*.ejs'])
+    .src(['src/ejs/index.ejs']) // Только index.ejs для React приложения
     .pipe(plumber())
     .pipe(ejs({}, {}, { ext: '.html' }))
+    .pipe(
+      require('gulp-rename')(function (path) {
+        path.extname = '.html';
+      }),
+    )
     .pipe(gulp.dest('./public'));
 });
 
@@ -53,15 +70,23 @@ gulp.task('serve', () => {
   gulp.watch('src/scss/**/*.scss', gulp.series('scss'));
   gulp.watch('src/ejs/**/*.ejs', gulp.series('ejs'));
   gulp.watch('src/js/**/*.js', gulp.series('js'));
+  gulp.watch('src/**/*.{js,jsx}', gulp.series('react'));
 
   browserSync.init({
-    server: './public',
+    server: {
+      baseDir: './public',
+    },
+    host: '0.0.0.0',
     port: 4444,
+    open: false,
+    socket: {
+      domain: 'localhost:3000',
+    },
   });
   gulp.watch('public/*.html').on('change', browserSync.reload);
   gulp.watch('public/js/*.js').on('change', browserSync.reload);
 });
 
-gulp.task('build', gulp.series('ejs', 'js', 'scss'));
+gulp.task('build', gulp.series('ejs', 'js', 'scss', 'react'));
 
 gulp.task('default', gulp.series('serve'));

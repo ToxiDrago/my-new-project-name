@@ -42,4 +42,116 @@
   background: #fff0f0;
   padding: 8px 12px;
   border: 1px solid #ffd6d6;
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.25);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: modal-fade-in $duration;
+}
+
+@keyframes modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(254,95,30,0.10), 0 1.5px 8px rgba(0,0,0,0.07);
+  padding: 36px 32px 28px 32px;
+  min-width: 340px;
+  max-width: 95vw;
+  position: relative;
+  animation: modal-pop-in $duration;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+@keyframes modal-pop-in {
+  from { transform: scale(0.97); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modal__close {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  background: none;
+  border: none;
+  font-size: 2.1rem;
+  color: $orange;
+  cursor: pointer;
+  transition: color $duration;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0 4px;
+}
+.modal__close:hover {
+  color: darken($orange, 10);
+}
+
+.modal__title {
+  margin-bottom: 18px;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: $black;
+  text-align: center;
+  letter-spacing: 0.01em;
+}
+
+.modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.modal__input {
+  padding: 13px 18px;
+  border: 1.5px solid $gray-line;
+  border-radius: 10px;
+  font-size: 16px;
+  transition: border $duration;
+  outline: none;
+  font-family: inherit;
+  background: #fafafa;
+}
+.modal__input:focus {
+  border: 1.5px solid $orange;
+}
+
+.modal__btn {
+  background: $orange;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 13px 0;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background $duration;
+  font-family: inherit;
+  box-shadow: 0 2px 8px rgba(254,95,30,0.08);
+}
+.modal__btn:disabled {
+  background: lighten($orange, 30);
+  cursor: not-allowed;
+}
+
+.modal__error {
+  color: #e74c3c;
+  font-size: 15px;
+  margin-top: 4px;
+  border-radius: 6px;
+  background: #fff0f0;
+  padding: 8px 12px;
+  border: 1px solid #ffd6d6;
+  text-align: center;
 } 

@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
+const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -16,6 +17,14 @@ db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 db.once('open', () => {
   console.log('Connected to MongoDB');
 });
+
+// CORS middleware
+app.use(
+  cors({
+    origin: ['http://localhost:3000', 'http://localhost:4444'],
+    credentials: true,
+  }),
+);
 
 // Модель заказа
 const orderSchema = new mongoose.Schema({
