@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
+import AddressSuggest from './AddressSuggest';
 
 const OrderModal = ({ visible, onClose, onSubmit, loading, error, orderData, handleInput }) => {
+  const [addressValid, setAddressValid] = useState(true);
+
   if (!visible) return null;
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -28,19 +31,16 @@ const OrderModal = ({ visible, onClose, onSubmit, loading, error, orderData, han
             onChange={handleInput}
             required
           />
-          <input
-            className="modal__input"
-            type="text"
-            name="address"
-            placeholder="Адрес доставки"
+          <AddressSuggest
             value={orderData.address}
-            onChange={handleInput}
-            required
+            onChange={(val) => handleInput({ target: { name: 'address', value: val } })}
+            onValid={(valid, val) => setAddressValid(valid)}
           />
+          {!addressValid && <div className="modal__error">Введите корректный адрес в России</div>}
           <button
             className="modal__btn"
             type="submit"
-            disabled={loading || !orderData.address.trim()}>
+            disabled={loading || !orderData.address.trim() || !addressValid}>
             {loading ? 'Отправка...' : 'Оформить заказ'}
           </button>
           {error && <div className="modal__error">{error}</div>}

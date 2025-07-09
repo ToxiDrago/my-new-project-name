@@ -48180,6 +48180,86 @@ module.exports = __webpack_require__.p + "56ac87032d8f6fdf8633.svg";
 
 /***/ }),
 
+/***/ "./src/components/AddressSuggest.jsx":
+/*!*******************************************!*\
+  !*** ./src/components/AddressSuggest.jsx ***!
+  \*******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+
+const AddressSuggest = _ref => {
+  let {
+    value,
+    onChange,
+    onValid
+  } = _ref;
+  const inputRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)();
+  const [ymapsReady, setYmapsReady] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [error, setError] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (!window.ymaps) {
+      setError('Скрипт Яндекс.Карт не загружен!');
+      return;
+    }
+    window.ymaps.ready(() => {
+      setYmapsReady(true);
+      setError('');
+      const suggestView = new window.ymaps.SuggestView(inputRef.current);
+      suggestView.events.add('select', e => {
+        const address = e.get('item').value;
+        onChange(address);
+        window.ymaps.geocode(address, {
+          results: 1
+        }).then(res => {
+          const obj = res.geoObjects.get(0);
+          if (obj) {
+            const country = obj.getCountry();
+            if (country === 'Россия') {
+              onValid(true, obj.getAddressLine());
+            } else {
+              onValid(false, address);
+            }
+          } else {
+            onValid(false, address);
+          }
+        });
+      });
+    });
+  }, [onChange, onValid]);
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+    ref: inputRef,
+    type: "text",
+    value: value,
+    onChange: e => onChange(e.target.value),
+    placeholder: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0430\u0434\u0440\u0435\u0441 \u0434\u043E\u0441\u0442\u0430\u0432\u043A\u0438",
+    autoComplete: "off",
+    disabled: !ymapsReady,
+    style: {
+      background: !ymapsReady ? '#f8d7da' : undefined
+    }
+  }), !ymapsReady && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+    style: {
+      color: 'red',
+      fontSize: 12
+    }
+  }, "\u0417\u0430\u0433\u0440\u0443\u0437\u043A\u0430 \u042F\u043D\u0434\u0435\u043A\u0441.\u041A\u0430\u0440\u0442..."), error && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+    style: {
+      color: 'red',
+      fontSize: 12
+    }
+  }, error));
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (AddressSuggest);
+
+/***/ }),
+
 /***/ "./src/components/CartEmpty.jsx":
 /*!**************************************!*\
   !*** ./src/components/CartEmpty.jsx ***!
@@ -48525,6 +48605,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _AddressSuggest__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./AddressSuggest */ "./src/components/AddressSuggest.jsx");
+
 
 const OrderModal = _ref => {
   let {
@@ -48536,6 +48618,7 @@ const OrderModal = _ref => {
     orderData,
     handleInput
   } = _ref;
+  const [addressValid, setAddressValid] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
   if (!visible) return null;
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
     className: "modal-backdrop",
@@ -48567,18 +48650,21 @@ const OrderModal = _ref => {
     value: orderData.phone,
     onChange: handleInput,
     required: true
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
-    className: "modal__input",
-    type: "text",
-    name: "address",
-    placeholder: "\u0410\u0434\u0440\u0435\u0441 \u0434\u043E\u0441\u0442\u0430\u0432\u043A\u0438",
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_AddressSuggest__WEBPACK_IMPORTED_MODULE_1__["default"], {
     value: orderData.address,
-    onChange: handleInput,
-    required: true
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
+    onChange: val => handleInput({
+      target: {
+        name: 'address',
+        value: val
+      }
+    }),
+    onValid: (valid, val) => setAddressValid(valid)
+  }), !addressValid && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+    className: "modal__error"
+  }, "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\u043E\u0440\u0440\u0435\u043A\u0442\u043D\u044B\u0439 \u0430\u0434\u0440\u0435\u0441 \u0432 \u0420\u043E\u0441\u0441\u0438\u0438"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
     className: "modal__btn",
     type: "submit",
-    disabled: loading || !orderData.address.trim()
+    disabled: loading || !orderData.address.trim() || !addressValid
   }, loading ? 'Отправка...' : 'Оформить заказ'), error && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
     className: "modal__error"
   }, error))));
