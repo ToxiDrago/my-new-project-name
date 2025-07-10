@@ -1,3 +1,2 @@
 @echo off
-start "" "http://localhost:3000"
-docker-compose up --build 
+npm start 

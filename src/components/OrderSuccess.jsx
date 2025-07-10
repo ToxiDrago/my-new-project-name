@@ -1,14 +1,12 @@
 import React from 'react';
-import styles from './OrderSuccess.module.scss';
-import pizzaIcon from '../assets/img/pizza-logo.svg';
 
-const OrderSuccess = () => (
-  <div className={styles.root}>
-    <div className={styles.icon}>
-      <img src={pizzaIcon} alt="Пицца" width={48} height={48} />
-    </div>
-    <h2 className={styles.title}>Спасибо за заказ!</h2>
-    <p className={styles.desc}>Мы скоро с вами свяжемся.</p>
+const OrderSuccess = ({ onClose }) => (
+  <div className="order-success">
+    <h2>Спасибо за заказ!</h2>
+    <p>Мы свяжемся с вами для подтверждения заказа.</p>
+    <button className="button button--black" onClick={onClose}>
+      Закрыть
+    </button>
   </div>
 );
 

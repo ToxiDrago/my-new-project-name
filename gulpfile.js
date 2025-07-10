@@ -6,7 +6,6 @@ const webpack = require('webpack');
 const webpackStream = require('webpack-stream');
 const webpackConfig = require('./webpack.config.js');
 
-// Сборка SCSS
 gulp.task('scss', () => {
   return gulp
     .src('src/scss/*.scss')
@@ -19,8 +18,7 @@ gulp.task('scss', () => {
     .pipe(gulp.dest('public/css'));
 });
 
-// Сборка React (Webpack)
-gulp.task('react', () => {
+gulp.task('js', () => {
   return gulp
     .src('src/index.js')
     .pipe(plumber())
@@ -28,25 +26,21 @@ gulp.task('react', () => {
     .pipe(gulp.dest('public/js'));
 });
 
-// Слежение и live reload
 gulp.task('serve', () => {
   browserSync.init({
     server: {
-      baseDir: './public',
+      baseDir: 'public',
     },
-    host: '0.0.0.0',
     port: 4444,
     open: false,
-    socket: {
-      domain: 'localhost:3000',
-    },
+    notify: false,
+    ui: false,
   });
   gulp.watch('src/scss/**/*.scss', gulp.series('scss')).on('change', browserSync.reload);
-  gulp
-    .watch(['src/**/*.js', 'src/**/*.jsx'], gulp.series('react'))
-    .on('change', browserSync.reload);
+  gulp.watch('src/**/*.js', gulp.series('js')).on('change', browserSync.reload);
   gulp.watch('public/*.html').on('change', browserSync.reload);
 });
 
-gulp.task('build', gulp.series('scss', 'react'));
+gulp.task('build', gulp.parallel('scss', 'js'));
+
 gulp.task('default', gulp.series('build', 'serve'));

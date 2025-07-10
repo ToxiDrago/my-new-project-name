@@ -48118,12 +48118,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var react_router_dom__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! react-router-dom */ "./node_modules/react-router-dom/node_modules/react-router/dist/index.js");
+/* harmony import */ var react_router_dom__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! react-router-dom */ "./node_modules/react-router-dom/node_modules/react-router/dist/index.js");
 /* harmony import */ var _scss_app_scss__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./scss/app.scss */ "./src/scss/app.scss");
 /* harmony import */ var _components_Header__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./components/Header */ "./src/components/Header.jsx");
 /* harmony import */ var _pages_Home__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./pages/Home */ "./src/pages/Home.jsx");
 /* harmony import */ var _pages_NotFound__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./pages/NotFound */ "./src/pages/NotFound.jsx");
 /* harmony import */ var _pages_Cart__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./pages/Cart */ "./src/pages/Cart.jsx");
+/* harmony import */ var _components_ToastNotification__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./components/ToastNotification */ "./src/components/ToastNotification.jsx");
+
 
 
 
@@ -48141,15 +48143,15 @@ function App() {
       searchValue,
       setSearchValue
     }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_components_Header__WEBPACK_IMPORTED_MODULE_2__["default"], null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_components_ToastNotification__WEBPACK_IMPORTED_MODULE_6__["default"], null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_components_Header__WEBPACK_IMPORTED_MODULE_2__["default"], null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
     className: "content"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_6__.Routes, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_6__.Route, {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_7__.Routes, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_7__.Route, {
     path: "/",
     element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_pages_Home__WEBPACK_IMPORTED_MODULE_3__["default"], null)
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_6__.Route, {
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_7__.Route, {
     path: "/cart",
     element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_pages_Cart__WEBPACK_IMPORTED_MODULE_5__["default"], null)
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_6__.Route, {
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_7__.Route, {
     path: "*",
     element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_pages_NotFound__WEBPACK_IMPORTED_MODULE_4__["default"], null)
   })))));
@@ -48194,67 +48196,128 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 
+const DADATA_API_KEY = 'a6e5199964dfc081e9dab106ba82157004f7b7e9';
 const AddressSuggest = _ref => {
   let {
     value,
     onChange,
     onValid
   } = _ref;
+  const [suggestions, setSuggestions] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [showSuggestions, setShowSuggestions] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [inputValue, setInputValue] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(value || '');
+  const [selected, setSelected] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const inputRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)();
-  const [ymapsReady, setYmapsReady] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const [error, setError] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (!window.ymaps) {
-      setError('Скрипт Яндекс.Карт не загружен!');
+
+  // Получение подсказок с DaData (только Россия, Санкт-Петербург)
+  const fetchSuggestions = async query => {
+    if (!query || query.length < 3) {
+      setSuggestions([]);
       return;
     }
-    window.ymaps.ready(() => {
-      setYmapsReady(true);
-      setError('');
-      const suggestView = new window.ymaps.SuggestView(inputRef.current);
-      suggestView.events.add('select', e => {
-        const address = e.get('item').value;
-        onChange(address);
-        window.ymaps.geocode(address, {
-          results: 1
-        }).then(res => {
-          const obj = res.geoObjects.get(0);
-          if (obj) {
-            const country = obj.getCountry();
-            if (country === 'Россия') {
-              onValid(true, obj.getAddressLine());
-            } else {
-              onValid(false, address);
-            }
-          } else {
-            onValid(false, address);
-          }
-        });
-      });
+    const response = await fetch('https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        Authorization: 'Token ' + DADATA_API_KEY
+      },
+      body: JSON.stringify({
+        query,
+        count: 7,
+        locations: [{
+          country: 'Россия',
+          city: 'Санкт-Петербург'
+        }],
+        restrict_value: true
+      })
     });
-  }, [onChange, onValid]);
-  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+    const data = await response.json();
+    setSuggestions(data.suggestions || []);
+  };
+  const handleInput = e => {
+    const val = e.target.value;
+    setInputValue(val);
+    setSelected(false);
+    setShowSuggestions(true);
+    onChange(''); // Сбросить адрес, если пользователь начал вводить
+    onValid(false, '');
+    fetchSuggestions(val);
+  };
+  const handleSelect = suggestion => {
+    setInputValue(suggestion.value);
+    setShowSuggestions(false);
+    setSelected(true);
+    // Сохраняем адрес и координаты
+    onChange(suggestion.value);
+    onValid(true, suggestion.value, {
+      lat: suggestion.data.geo_lat,
+      lon: suggestion.data.geo_lon
+    });
+  };
+
+  // Блокируем ручной ввод: если не выбрано из списка, невалидно
+  const isValid = selected && inputValue;
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+    style: {
+      position: 'relative',
+      width: '100%'
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
     ref: inputRef,
     type: "text",
-    value: value,
-    onChange: e => onChange(e.target.value),
-    placeholder: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0430\u0434\u0440\u0435\u0441 \u0434\u043E\u0441\u0442\u0430\u0432\u043A\u0438",
+    value: inputValue,
+    onChange: handleInput,
+    onFocus: () => inputValue.length >= 3 && setShowSuggestions(true),
+    placeholder: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0430\u0434\u0440\u0435\u0441 \u0434\u043E\u0441\u0442\u0430\u0432\u043A\u0438 (\u0442\u043E\u043B\u044C\u043A\u043E \u0421\u041F\u0431)",
     autoComplete: "off",
-    disabled: !ymapsReady,
     style: {
-      background: !ymapsReady ? '#f8d7da' : undefined
+      background: !isValid ? '#fff0f0' : undefined,
+      border: isValid ? '1.5px solid #e0e0e0' : '1.5px solid #e74c3c',
+      borderRadius: 10,
+      padding: '13px 18px',
+      fontSize: 16,
+      width: '100%',
+      boxSizing: 'border-box',
+      transition: 'border 0.2s'
     }
-  }), !ymapsReady && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+  }), showSuggestions && suggestions.length > 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("ul", {
     style: {
-      color: 'red',
-      fontSize: 12
+      position: 'absolute',
+      zIndex: 1000,
+      background: '#fff',
+      border: '1.5px solid #e0e0e0',
+      borderRadius: 10,
+      width: '100%',
+      maxHeight: 240,
+      overflowY: 'auto',
+      margin: 0,
+      marginTop: 4,
+      padding: 0,
+      listStyle: 'none',
+      boxShadow: '0 8px 32px rgba(30,30,30,0.10)',
+      animation: 'fadeIn 0.2s'
     }
-  }, "\u0417\u0430\u0433\u0440\u0443\u0437\u043A\u0430 \u042F\u043D\u0434\u0435\u043A\u0441.\u041A\u0430\u0440\u0442..."), error && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+  }, suggestions.map((s, idx) => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("li", {
+    key: s.value,
+    onClick: () => handleSelect(s),
     style: {
-      color: 'red',
-      fontSize: 12
+      padding: '12px 18px',
+      cursor: 'pointer',
+      background: idx === 0 ? '#f6f6f6' : '#fff',
+      borderBottom: idx !== suggestions.length - 1 ? '1px solid #f0f0f0' : 'none',
+      fontSize: 15,
+      transition: 'background 0.15s'
+    },
+    onMouseEnter: e => e.currentTarget.style.background = '#f6f6f6',
+    onMouseLeave: e => e.currentTarget.style.background = idx === 0 ? '#f6f6f6' : '#fff'
+  }, s.value))), !isValid && inputValue && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+    style: {
+      color: '#e74c3c',
+      fontSize: 13,
+      marginTop: 4
     }
-  }, error));
+  }, "\u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u0430\u0434\u0440\u0435\u0441 \u0438\u0437 \u0441\u043F\u0438\u0441\u043A\u0430 (\u0442\u043E\u043B\u044C\u043A\u043E \u0421\u0430\u043D\u043A\u0442-\u041F\u0435\u0442\u0435\u0440\u0431\u0443\u0440\u0433)"));
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (AddressSuggest);
 
@@ -48324,15 +48387,25 @@ const CartItem = _ref => {
   const dispatch = (0,react_redux__WEBPACK_IMPORTED_MODULE_2__.useDispatch)();
   const onClickPlus = () => {
     dispatch((0,_redux_slices_cartSlice__WEBPACK_IMPORTED_MODULE_1__.addItem)({
-      id
+      id,
+      type,
+      size
     }));
   };
   const onClickMinus = () => {
-    dispatch((0,_redux_slices_cartSlice__WEBPACK_IMPORTED_MODULE_1__.minusItem)(id));
+    dispatch((0,_redux_slices_cartSlice__WEBPACK_IMPORTED_MODULE_1__.minusItem)({
+      id,
+      type,
+      size
+    }));
   };
   const onClickRemove = () => {
     if (window.confirm('Вы действительно хотите удалить пиццу?')) {
-      dispatch((0,_redux_slices_cartSlice__WEBPACK_IMPORTED_MODULE_1__.removeItem)(id));
+      dispatch((0,_redux_slices_cartSlice__WEBPACK_IMPORTED_MODULE_1__.removeItem)({
+        id,
+        type,
+        size
+      }));
     }
   };
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
@@ -48619,6 +48692,61 @@ const OrderModal = _ref => {
     handleInput
   } = _ref;
   const [addressValid, setAddressValid] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
+  const [addressCoords, setAddressCoords] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+
+  // Исправленная функция для форматирования номера телефона
+  const formatPhoneNumber = value => {
+    let numbers = value.replace(/\D/g, '');
+    // Если пользователь начинает с 8, заменяем на 7
+    if (numbers.startsWith('8')) numbers = '7' + numbers.slice(1);
+    // Форматируем только если номер начинается с 7
+    if (numbers.startsWith('7')) {
+      numbers = numbers.slice(0, 11);
+      let result = '+7';
+      if (numbers.length > 1) {
+        result += ' (' + numbers.slice(1, 4);
+      }
+      if (numbers.length >= 4) {
+        result += ') ' + numbers.slice(4, 7);
+      }
+      if (numbers.length >= 7) {
+        result += '-' + numbers.slice(7, 9);
+      }
+      if (numbers.length >= 9) {
+        result += '-' + numbers.slice(9, 11);
+      }
+      return result;
+    }
+    // Если пользователь вводит не с 7 или 8, просто показываем то, что он ввёл
+    return numbers;
+  };
+  const handlePhoneChange = e => {
+    const formattedPhone = formatPhoneNumber(e.target.value);
+    handleInput({
+      target: {
+        name: 'phone',
+        value: formattedPhone
+      }
+    });
+  };
+
+  // Валидация: строго по маске, без лишних пробелов
+  const isPhoneValid = () => {
+    const re = /^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/;
+    return re.test(orderData.phone.trim());
+  };
+
+  // Обработка выбора адреса с координатами
+  const handleAddressValid = (valid, val, coords) => {
+    setAddressValid(valid);
+    setAddressCoords(coords || null);
+    handleInput({
+      target: {
+        name: 'address',
+        value: val
+      }
+    });
+  };
   if (!visible) return null;
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
     className: "modal-backdrop",
@@ -48646,11 +48774,16 @@ const OrderModal = _ref => {
     className: "modal__input",
     type: "tel",
     name: "phone",
-    placeholder: "\u0422\u0435\u043B\u0435\u0444\u043E\u043D",
+    placeholder: "+7 (___) ___-__-__",
     value: orderData.phone,
-    onChange: handleInput,
-    required: true
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_AddressSuggest__WEBPACK_IMPORTED_MODULE_1__["default"], {
+    onChange: handlePhoneChange,
+    required: true,
+    style: {
+      borderColor: orderData.phone && !isPhoneValid() ? '#e74c3c' : undefined
+    }
+  }), orderData.phone && !isPhoneValid() && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+    className: "modal__error"
+  }, "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\u043E\u0440\u0440\u0435\u043A\u0442\u043D\u044B\u0439 \u043D\u043E\u043C\u0435\u0440 \u0442\u0435\u043B\u0435\u0444\u043E\u043D\u0430 \u0432 \u0444\u043E\u0440\u043C\u0430\u0442\u0435 +7 (XXX) XXX-XX-XX"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_AddressSuggest__WEBPACK_IMPORTED_MODULE_1__["default"], {
     value: orderData.address,
     onChange: val => handleInput({
       target: {
@@ -48658,13 +48791,13 @@ const OrderModal = _ref => {
         value: val
       }
     }),
-    onValid: (valid, val) => setAddressValid(valid)
+    onValid: handleAddressValid
   }), !addressValid && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
     className: "modal__error"
-  }, "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\u043E\u0440\u0440\u0435\u043A\u0442\u043D\u044B\u0439 \u0430\u0434\u0440\u0435\u0441 \u0432 \u0420\u043E\u0441\u0441\u0438\u0438"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
+  }, "\u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u0430\u0434\u0440\u0435\u0441 \u0438\u0437 \u0441\u043F\u0438\u0441\u043A\u0430"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
     className: "modal__btn",
     type: "submit",
-    disabled: loading || !orderData.address.trim() || !addressValid
+    disabled: loading || !orderData.address.trim() || !addressValid || !isPhoneValid()
   }, loading ? 'Отправка...' : 'Оформить заказ'), error && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
     className: "modal__error"
   }, error))));
@@ -48841,7 +48974,8 @@ __webpack_require__.r(__webpack_exports__);
 const Pagination = _ref => {
   let {
     currentPage,
-    onChangePage
+    onChangePage,
+    pageCount
   } = _ref;
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement((react_paginate__WEBPACK_IMPORTED_MODULE_1___default()), {
     className: _Pagination_module_scss__WEBPACK_IMPORTED_MODULE_2__["default"].root,
@@ -48850,7 +48984,7 @@ const Pagination = _ref => {
     previousLabel: "<",
     onPageChange: event => onChangePage(event.selected + 1),
     pageRangeDisplayed: 4,
-    pageCount: 3,
+    pageCount: pageCount,
     forcePage: currentPage - 1,
     renderOnZeroPageCount: null
   });
@@ -48951,10 +49085,17 @@ function PizzaBlock(_ref) {
     rating
   } = _ref;
   const dispatch = (0,react_redux__WEBPACK_IMPORTED_MODULE_2__.useDispatch)();
-  const cartItem = (0,react_redux__WEBPACK_IMPORTED_MODULE_2__.useSelector)(state => state.cart.items.find(obj => obj.id === id));
+  const {
+    maxItemsReached
+  } = (0,react_redux__WEBPACK_IMPORTED_MODULE_2__.useSelector)(state => state.cart);
   const [activeType, setActiveType] = react__WEBPACK_IMPORTED_MODULE_0___default().useState(0);
   const [activeSize, setActiveSize] = react__WEBPACK_IMPORTED_MODULE_0___default().useState(0);
-  const addedCount = cartItem ? cartItem.count : 0;
+
+  // Считаем количество выбранной комбинации пиццы в корзине
+  const addedCount = (0,react_redux__WEBPACK_IMPORTED_MODULE_2__.useSelector)(state => {
+    var _state$cart$items$fin;
+    return ((_state$cart$items$fin = state.cart.items.find(obj => obj.id === id && obj.type === typeNames[activeType] && obj.size === sizes[activeSize])) === null || _state$cart$items$fin === void 0 ? void 0 : _state$cart$items$fin.count) || 0;
+  });
   const onClickAdd = () => {
     const item = {
       id,
@@ -48966,6 +49107,21 @@ function PizzaBlock(_ref) {
     };
     dispatch((0,_redux_slices_cartSlice__WEBPACK_IMPORTED_MODULE_1__.addItem)(item));
   };
+
+  // Функция для закрытия уведомления
+  const closeNotification = react__WEBPACK_IMPORTED_MODULE_0___default().useCallback(() => {
+    dispatch((0,_redux_slices_cartSlice__WEBPACK_IMPORTED_MODULE_1__.clearMaxItemsNotification)());
+  }, [dispatch]);
+
+  // Автоматическое закрытие уведомления через 2 секунды
+  react__WEBPACK_IMPORTED_MODULE_0___default().useEffect(() => {
+    if (maxItemsReached) {
+      const timer = setTimeout(() => {
+        closeNotification();
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [maxItemsReached, closeNotification]);
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
     className: "pizza-block-wrapper"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
@@ -48992,7 +49148,12 @@ function PizzaBlock(_ref) {
     className: "pizza-block__price"
   }, "\u043E\u0442 ", price, " \u20BD"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
     onClick: onClickAdd,
-    className: "button button--outline button--add"
+    className: "button button--outline button--add",
+    disabled: maxItemsReached,
+    style: maxItemsReached ? {
+      opacity: 0.6,
+      cursor: 'not-allowed'
+    } : {}
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("svg", {
     width: "12",
     height: "12",
@@ -49002,7 +49163,35 @@ function PizzaBlock(_ref) {
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("path", {
     d: "M10.8 4.8H7.2V1.2C7.2 0.5373 6.6627 0 6 0C5.3373 0 4.8 0.5373 4.8 1.2V4.8H1.2C0.5373 4.8 0 5.3373 0 6C0 6.6627 0.5373 7.2 1.2 7.2H4.8V10.8C4.8 11.4627 5.3373 12 6 12C6.6627 12 7.2 11.4627 7.2 10.8V7.2H10.8C11.4627 7.2 12 6.6627 12 6C12 5.3373 11.4627 4.8 10.8 4.8Z",
     fill: "white"
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null, "\u0414\u043E\u0431\u0430\u0432\u0438\u0442\u044C"), addedCount > 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", null, addedCount)))));
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null, "\u0414\u043E\u0431\u0430\u0432\u0438\u0442\u044C"), addedCount > 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", null, addedCount))), maxItemsReached && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+    className: "pizza-block__notification",
+    style: {
+      position: 'absolute',
+      top: '-60px',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      backgroundColor: '#fff3cd',
+      border: '1px solid #ffeaa7',
+      borderRadius: '8px',
+      padding: '8px 12px',
+      fontSize: '12px',
+      color: '#856404',
+      zIndex: 1000,
+      whiteSpace: 'nowrap',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+    }
+  }, "\u041C\u0430\u043A\u0441\u0438\u043C\u0443\u043C 10 \u043F\u0438\u0446\u0446 \u0432 \u043A\u043E\u0440\u0437\u0438\u043D\u0435", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
+    onClick: closeNotification,
+    style: {
+      background: 'none',
+      border: 'none',
+      fontSize: '14px',
+      cursor: 'pointer',
+      color: '#856404',
+      fontWeight: 'bold',
+      marginLeft: '8px'
+    }
+  }, "\xD7"))));
 }
 
 /***/ }),
@@ -49155,22 +49344,13 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const list = [{
-  name: 'популярности(DESC)',
-  sortProperty: 'rating'
-}, {
-  name: 'популярности(ASC)',
+  name: 'популярности',
   sortProperty: '-rating'
 }, {
-  name: 'цене(DESC)',
-  sortProperty: 'price'
-}, {
-  name: 'цене(ASC)',
+  name: 'цене',
   sortProperty: '-price'
 }, {
-  name: 'алфавиту(DESC)',
-  sortProperty: 'title'
-}, {
-  name: 'алфавиту(ASC)',
+  name: 'алфавиту',
   sortProperty: '-title'
 }];
 function Sort() {
@@ -49220,6 +49400,96 @@ function Sort() {
 
 /***/ }),
 
+/***/ "./src/components/ToastNotification.jsx":
+/*!**********************************************!*\
+  !*** ./src/components/ToastNotification.jsx ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var react_redux__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react-redux */ "./node_modules/react-redux/dist/react-redux.mjs");
+/* harmony import */ var _redux_slices_cartSlice__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../redux/slices/cartSlice */ "./src/redux/slices/cartSlice.js");
+
+
+
+const AUTO_HIDE_DURATION = 4000; // 4 секунды
+
+const ToastNotification = () => {
+  const {
+    maxItemsReached
+  } = (0,react_redux__WEBPACK_IMPORTED_MODULE_2__.useSelector)(state => state.cart);
+  const dispatch = (0,react_redux__WEBPACK_IMPORTED_MODULE_2__.useDispatch)();
+  const [visible, setVisible] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [timer, setTimer] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (maxItemsReached && !visible) {
+      setVisible(true);
+      // Автоматически скрыть через 4 секунды
+      const t = setTimeout(() => {
+        setVisible(false);
+        dispatch((0,_redux_slices_cartSlice__WEBPACK_IMPORTED_MODULE_1__.clearMaxItemsNotification)());
+      }, AUTO_HIDE_DURATION);
+      setTimer(t);
+    }
+    // Если лимит снят вручную, скрываем уведомление
+    if (!maxItemsReached && visible) {
+      setVisible(false);
+      if (timer) clearTimeout(timer);
+    }
+    // Очищаем таймер при размонтировании
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+    // eslint-disable-next-line
+  }, [maxItemsReached]);
+  if (!visible) return null;
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+    style: {
+      position: 'fixed',
+      top: 24,
+      right: 24,
+      zIndex: 9999,
+      background: '#e74c3c',
+      color: '#fff',
+      padding: '16px 32px',
+      borderRadius: 12,
+      boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
+      fontWeight: 600,
+      fontSize: 16,
+      display: 'flex',
+      alignItems: 'center',
+      minWidth: 320,
+      maxWidth: 400,
+      gap: 16
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null, "\u0412\u044B\u0431\u0440\u0430\u043D\u043E \u043C\u0430\u043A\u0441\u0438\u043C\u0430\u043B\u044C\u043D\u043E\u0435 \u043A\u043E\u043B\u0438\u0447\u0435\u0441\u0442\u0432\u043E \u043F\u0438\u0446\u0446. \u0411\u043E\u043B\u044C\u0448\u0435 \u0437\u0430\u043A\u0430\u0437\u0430\u0442\u044C \u043D\u0435\u043B\u044C\u0437\u044F."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
+    onClick: () => {
+      setVisible(false);
+      dispatch((0,_redux_slices_cartSlice__WEBPACK_IMPORTED_MODULE_1__.clearMaxItemsNotification)());
+    },
+    style: {
+      background: 'none',
+      border: 'none',
+      color: '#fff',
+      fontSize: 22,
+      fontWeight: 700,
+      marginLeft: 'auto',
+      cursor: 'pointer',
+      lineHeight: 1
+    },
+    "aria-label": "\u0417\u0430\u043A\u0440\u044B\u0442\u044C \u0443\u0432\u0435\u0434\u043E\u043C\u043B\u0435\u043D\u0438\u0435"
+  }, "\xD7"));
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ToastNotification);
+
+/***/ }),
+
 /***/ "./src/pages/Cart.jsx":
 /*!****************************!*\
   !*** ./src/pages/Cart.jsx ***!
@@ -49259,7 +49529,8 @@ const Cart = () => {
   const dispatch = (0,react_redux__WEBPACK_IMPORTED_MODULE_6__.useDispatch)();
   const {
     totalPrice,
-    items
+    items,
+    maxItemsReached
   } = (0,react_redux__WEBPACK_IMPORTED_MODULE_6__.useSelector)(state => state.cart);
   const totalCount = items.reduce((sum, item) => sum + item.count, 0);
   const onClickClear = () => {
@@ -49307,6 +49578,11 @@ const Cart = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Функция для закрытия уведомления
+  const closeNotification = () => {
+    dispatch((0,_redux_slices_cartSlice__WEBPACK_IMPORTED_MODULE_2__.clearMaxItemsNotification)());
   };
   if (orderSuccess) {
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_components_OrderSuccess__WEBPACK_IMPORTED_MODULE_5__["default"], null);
@@ -49379,10 +49655,36 @@ const Cart = () => {
     strokeWidth: "1.2",
     strokeLinecap: "round",
     strokeLinejoin: "round"
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null, "\u041E\u0447\u0438\u0441\u0442\u0438\u0442\u044C \u043A\u043E\u0440\u0437\u0438\u043D\u0443"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null, "\u041E\u0447\u0438\u0441\u0442\u0438\u0442\u044C \u043A\u043E\u0440\u0437\u0438\u043D\u0443"))), maxItemsReached && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+    className: "cart__notification",
+    style: {
+      backgroundColor: '#fff3cd',
+      border: '1px solid #ffeaa7',
+      borderRadius: '8px',
+      padding: '12px 16px',
+      marginBottom: '20px',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center'
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
+    style: {
+      color: '#856404'
+    }
+  }, "\u041C\u0430\u043A\u0441\u0438\u043C\u0430\u043B\u044C\u043D\u043E\u0435 \u043A\u043E\u043B\u0438\u0447\u0435\u0441\u0442\u0432\u043E \u043F\u0438\u0446\u0446 \u0432 \u043A\u043E\u0440\u0437\u0438\u043D\u0435 - 10. \u0411\u043E\u043B\u044C\u0448\u0435 \u0434\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u043D\u0435\u043B\u044C\u0437\u044F."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
+    onClick: closeNotification,
+    style: {
+      background: 'none',
+      border: 'none',
+      fontSize: '18px',
+      cursor: 'pointer',
+      color: '#856404',
+      fontWeight: 'bold'
+    }
+  }, "\xD7")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
     className: "content__items"
   }, items.map(item => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_components_CartItem__WEBPACK_IMPORTED_MODULE_1__["default"], _extends({
-    key: item.id
+    key: "".concat(item.id, "_").concat(item.type || 'none', "_").concat(item.size || 'none')
   }, item)))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
     className: "cart__bottom"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
@@ -49454,6 +49756,8 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
 
 
 
+const LIMIT = 8; // Количество пицц на страницу
+
 const Home = () => {
   const dispatch = (0,react_redux__WEBPACK_IMPORTED_MODULE_8__.useDispatch)();
   const {
@@ -49466,6 +49770,7 @@ const Home = () => {
   } = react__WEBPACK_IMPORTED_MODULE_0___default().useContext(_App__WEBPACK_IMPORTED_MODULE_7__.AppContext);
   const [items, setItems] = react__WEBPACK_IMPORTED_MODULE_0___default().useState([]);
   const [isLoading, setIsLoading] = react__WEBPACK_IMPORTED_MODULE_0___default().useState(true);
+  const [totalCount, setTotalCount] = react__WEBPACK_IMPORTED_MODULE_0___default().useState(0);
   const onChangeCategory = id => {
     dispatch((0,_redux_slices_filterSlice__WEBPACK_IMPORTED_MODULE_1__.setCategoryId)(id));
   };
@@ -49478,9 +49783,13 @@ const Home = () => {
     const sortBy = sort.sortProperty.replace('-', '');
     const category = categoryId > 0 ? "category=".concat(categoryId) : '';
     const search = searchValue > 0 ? "search=".concat(searchValue) : '';
-    axios__WEBPACK_IMPORTED_MODULE_9__["default"].get("https://680d6458c47cb8074d904fd5.mockapi.io/items?page=".concat(currentPage, "&limit=4&").concat(category, "&sortBy=").concat(sortBy, "&order=").concat(order).concat(search)).then(res => {
+    axios__WEBPACK_IMPORTED_MODULE_9__["default"].get("https://680d6458c47cb8074d904fd5.mockapi.io/items?page=".concat(currentPage, "&limit=").concat(LIMIT, "&").concat(category, "&sortBy=").concat(sortBy, "&order=").concat(order).concat(search)).then(res => {
       setItems(res.data);
       setIsLoading(false);
+    });
+    // Получаем общее количество пицц для пагинации
+    axios__WEBPACK_IMPORTED_MODULE_9__["default"].get("https://680d6458c47cb8074d904fd5.mockapi.io/items?".concat(category, "&").concat(search)).then(res => {
+      setTotalCount(res.data.length);
     });
     window.scrollTo(0, 0);
   }, [categoryId, sort.sortProperty, searchValue, currentPage]);
@@ -49492,9 +49801,10 @@ const Home = () => {
   }).map(obj => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_components_PizzaBlock__WEBPACK_IMPORTED_MODULE_4__["default"], _extends({
     key: obj.id
   }, obj)));
-  const skeletons = [...new Array(6)].map((_, index) => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_components_PizzaBlock_Placeholder__WEBPACK_IMPORTED_MODULE_5__["default"], {
+  const skeletons = [...new Array(LIMIT)].map((_, index) => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_components_PizzaBlock_Placeholder__WEBPACK_IMPORTED_MODULE_5__["default"], {
     key: index
   }));
+  const pageCount = Math.ceil(totalCount / LIMIT);
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
     className: "container"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
@@ -49508,7 +49818,8 @@ const Home = () => {
     className: "content__items"
   }, isLoading ? skeletons : pizzas), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_components_Pagination__WEBPACK_IMPORTED_MODULE_6__["default"], {
     currentPage: currentPage,
-    onChangePage: onChangePage
+    onChangePage: onChangePage,
+    pageCount: pageCount
   }));
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Home);
@@ -49549,6 +49860,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   addItem: () => (/* binding */ addItem),
 /* harmony export */   clearItems: () => (/* binding */ clearItems),
+/* harmony export */   clearMaxItemsNotification: () => (/* binding */ clearMaxItemsNotification),
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
 /* harmony export */   minusItem: () => (/* binding */ minusItem),
 /* harmony export */   removeItem: () => (/* binding */ removeItem)
@@ -49562,14 +49874,26 @@ function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = 
 
 const initialState = {
   totalPrice: 0,
-  items: []
+  items: [],
+  maxItemsReached: false // Флаг для уведомления о максимальном количестве
 };
 const cartSlice = (0,_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_0__.createSlice)({
   name: 'cart',
   initialState,
   reducers: {
     addItem(state, action) {
-      const findItem = state.items.find(obj => obj.id === action.payload.id);
+      const {
+        id,
+        type,
+        size
+      } = action.payload;
+      // Ищем по id, type, size
+      const findItem = state.items.find(obj => obj.id === id && obj.type === type && obj.size === size);
+      const totalCount = state.items.reduce((sum, obj) => sum + obj.count, 0) + 1;
+      if (totalCount > 10) {
+        state.maxItemsReached = true;
+        return;
+      }
       if (findItem) {
         findItem.count++;
       } else {
@@ -49577,22 +49901,43 @@ const cartSlice = (0,_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_0__.createSlice)(
           count: 1
         }));
       }
-      state.totalPrice = state.items.reduce((sum, obj) => {
-        return obj.price * obj.count + sum;
-      }, 0);
+      state.totalPrice = state.items.reduce((sum, obj) => obj.price * obj.count + sum, 0);
+      state.maxItemsReached = false;
     },
     minusItem(state, action) {
-      const findItem = state.items.find(obj => obj.id === action.payload);
+      const {
+        id,
+        type,
+        size
+      } = action.payload;
+      const findItem = state.items.find(obj => obj.id === id && obj.type === type && obj.size === size);
       if (findItem) {
-        findItem.count--;
+        if (findItem.count === 1) {
+          state.items = state.items.filter(obj => !(obj.id === id && obj.type === type && obj.size === size));
+        } else {
+          findItem.count--;
+        }
       }
+      state.totalPrice = state.items.reduce((sum, obj) => obj.price * obj.count + sum, 0);
+      state.maxItemsReached = false;
     },
     removeItem(state, action) {
-      state.items = state.items.filter(obj => obj.id !== action.payload);
+      const {
+        id,
+        type,
+        size
+      } = action.payload;
+      state.items = state.items.filter(obj => !(obj.id === id && obj.type === type && obj.size === size));
+      state.totalPrice = state.items.reduce((sum, obj) => obj.price * obj.count + sum, 0);
+      state.maxItemsReached = false;
     },
     clearItems(state, action) {
       state.items = [];
       state.totalPrice = 0;
+      state.maxItemsReached = false;
+    },
+    clearMaxItemsNotification(state, action) {
+      state.maxItemsReached = false;
     }
   }
 });
@@ -49600,7 +49945,8 @@ const {
   addItem,
   removeItem,
   minusItem,
-  clearItems
+  clearItems,
+  clearMaxItemsNotification
 } = cartSlice.actions;
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (cartSlice.reducer);
 

@@ -1,53 +1,86 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState, useRef } from 'react';
+
+const DADATA_API_KEY = 'a6e5199964dfc081e9dab106ba82157004f7b7e9';
 
 const AddressSuggest = ({ value, onChange, onValid }) => {
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [inputValue, setInputValue] = useState(value || '');
+  const [selected, setSelected] = useState(false);
   const inputRef = useRef();
-  const [ymapsReady, setYmapsReady] = useState(false);
-  const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (!window.ymaps) {
-      setError('Скрипт Яндекс.Карт не загружен!');
+  const fetchSuggestions = async (query) => {
+    if (!query || query.length < 3) {
+      setSuggestions([]);
       return;
     }
-    window.ymaps.ready(() => {
-      setYmapsReady(true);
-      setError('');
-      const suggestView = new window.ymaps.SuggestView(inputRef.current);
-      suggestView.events.add('select', (e) => {
-        const address = e.get('item').value;
-        onChange(address);
-        window.ymaps.geocode(address, { results: 1 }).then((res) => {
-          const obj = res.geoObjects.get(0);
-          if (obj) {
-            const country = obj.getCountry();
-            if (country === 'Россия') {
-              onValid(true, obj.getAddressLine());
-            } else {
-              onValid(false, address);
-            }
-          } else {
-            onValid(false, address);
-          }
-        });
-      });
+    const response = await fetch(
+      'https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          Authorization: 'Token ' + DADATA_API_KEY,
+        },
+        body: JSON.stringify({
+          query,
+          count: 7,
+          locations: [{ country: 'Россия', city: 'Санкт-Петербург' }],
+          restrict_value: true,
+        }),
+      },
+    );
+    const data = await response.json();
+    setSuggestions(data.suggestions || []);
+  };
+
+  const handleInput = (e) => {
+    const val = e.target.value;
+    setInputValue(val);
+    setSelected(false);
+    setShowSuggestions(true);
+    onChange('');
+    onValid(false, '');
+    fetchSuggestions(val);
+  };
+
+  const handleSelect = (suggestion) => {
+    setInputValue(suggestion.value);
+    setShowSuggestions(false);
+    setSelected(true);
+    onChange(suggestion.value);
+    onValid(true, suggestion.value, {
+      ...suggestion.data,
+      geo_lat: suggestion.data.geo_lat,
+      geo_lon: suggestion.data.geo_lon,
     });
-  }, [onChange, onValid]);
+  };
+
+  const handleBlur = () => {
+    setTimeout(() => setShowSuggestions(false), 100);
+  };
 
   return (
-    <div>
+    <div className="address-suggest">
       <input
         ref={inputRef}
         type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+        value={inputValue}
+        onChange={handleInput}
+        onBlur={handleBlur}
         placeholder="Введите адрес доставки"
         autoComplete="off"
-        disabled={!ymapsReady}
-        style={{ background: !ymapsReady ? '#f8d7da' : undefined }}
       />
-      {!ymapsReady && <div style={{ color: 'red', fontSize: 12 }}>Загрузка Яндекс.Карт...</div>}
-      {error && <div style={{ color: 'red', fontSize: 12 }}>{error}</div>}
+      {showSuggestions && suggestions.length > 0 && (
+        <ul className="suggestions-list">
+          {suggestions.map((s, i) => (
+            <li key={i} onClick={() => handleSelect(s)}>
+              {s.value}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };

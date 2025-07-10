@@ -1,10 +1,19 @@
 @import './variables';
 @import './libs/normalize';
-
 @import './components/all';
 
 body {
-  background-color: $background;
+  font-family: 'Proxima Nova', Arial, Helvetica, sans-serif;
+  background: #f9f9f9;
+  margin: 0;
+  padding: 0;
+  color: #232323;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .wrapper {

@@ -5,7 +5,6 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Подключение к MongoDB
 const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost:27017/pizza-app';
 mongoose.connect(MONGO_URL, {
   useNewUrlParser: true,
@@ -18,7 +17,6 @@ db.once('open', () => {
   console.log('Connected to MongoDB');
 });
 
-// CORS middleware
 app.use(
   cors({
     origin: ['http://localhost:3000', 'http://localhost:4444'],
@@ -26,7 +24,6 @@ app.use(
   }),
 );
 
-// Модель заказа
 const orderSchema = new mongoose.Schema({
   name: { type: String, required: true },
   phone: { type: String, required: true },
@@ -37,16 +34,13 @@ const orderSchema = new mongoose.Schema({
 
 const Order = mongoose.model('Order', orderSchema);
 
-// Пример API
 app.get('/api/hello', (req, res) => {
   res.json({ message: 'Hello from backend!' });
 });
 
-// Отдача статики React (если будет build)
-app.use(express.static(path.join(__dirname, '../build')));
+app.use(express.static(path.join(__dirname, 'build')));
 app.use(express.json());
 
-// API для создания заказа
 app.post('/api/orders', async (req, res) => {
   try {
     const { name, phone, address, cart } = req.body;
@@ -61,7 +55,6 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
-// API для получения всех заказов (для проверки)
 app.get('/api/orders', async (req, res) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 });
@@ -71,9 +64,8 @@ app.get('/api/orders', async (req, res) => {
   }
 });
 
-// Все не-API запросы — index.html
 app.get(/^\/(?!api).*/, (req, res) => {
-  res.sendFile(path.join(__dirname, '../build', 'index.html'));
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
 app.listen(PORT, () => {

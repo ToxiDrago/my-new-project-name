@@ -1,49 +1,57 @@
 import React, { useState } from 'react';
-import AddressSuggest from './AddressSuggest';
 
-const OrderModal = ({ visible, onClose, onSubmit, loading, error, orderData, handleInput }) => {
-  const [addressValid, setAddressValid] = useState(true);
+const OrderModal = ({ isOpen, onClose, onSubmit, cart, totalPrice }) => {
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [error, setError] = useState('');
 
-  if (!visible) return null;
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!name || !phone || !address) {
+      setError('Пожалуйста, заполните все поля');
+      return;
+    }
+    onSubmit({ name, phone, address });
+  };
+
+  if (!isOpen) return null;
+
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <button className="modal__close" onClick={onClose}>
+    <div className="modal-overlay">
+      <div className="modal">
+        <button className="modal-close" onClick={onClose}>
           &times;
         </button>
-        <h2 className="modal__title">Оформление заказа</h2>
-        <form className="modal__form" onSubmit={onSubmit}>
+        <h2>Оформление заказа</h2>
+        <form onSubmit={handleSubmit}>
           <input
-            className="modal__input"
             type="text"
-            name="name"
-            placeholder="Ваше имя"
-            value={orderData.name}
-            onChange={handleInput}
-            required
+            placeholder="Имя"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
           />
           <input
-            className="modal__input"
             type="tel"
-            name="phone"
             placeholder="Телефон"
-            value={orderData.phone}
-            onChange={handleInput}
-            required
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
           />
-          <AddressSuggest
-            value={orderData.address}
-            onChange={(val) => handleInput({ target: { name: 'address', value: val } })}
-            onValid={(valid, val) => setAddressValid(valid)}
+          <input
+            type="text"
+            placeholder="Адрес доставки"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
           />
-          {!addressValid && <div className="modal__error">Введите корректный адрес в России</div>}
-          <button
-            className="modal__btn"
-            type="submit"
-            disabled={loading || !orderData.address.trim() || !addressValid}>
-            {loading ? 'Отправка...' : 'Оформить заказ'}
+          {error && <div className="modal-error">{error}</div>}
+          <div className="modal-summary">
+            <span>
+              Всего: {cart.length} пицц на {totalPrice} ₽
+            </span>
+          </div>
+          <button type="submit" className="button button--black">
+            Заказать
           </button>
-          {error && <div className="modal__error">{error}</div>}
         </form>
       </div>
     </div>
